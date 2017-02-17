@@ -8,10 +8,10 @@ import time
 
 
 #Variables that contains the user credentials to access Twitter API 
-access_token = "2235939553-2Ns7FAID7XjoEzaUEFZ8K1zoWn62GZaQYmaI3F5"
-access_token_secret = "x5qs8Ob8jqba2NcDBt8YTdMIQtekWHqMHGZUiZLQ6CoKc"
-consumer_key = "ZLAIRyTdGZ1fdtwjOad2xup3J"
-consumer_secret = "CL59B3i6RGNkXUnNu7DBSef8FmwHUWQTnJazJQwMB3ea2BNYVb"
+access_token = ""
+access_token_secret = ""
+consumer_key = ""
+consumer_secret = ""
 
 # sample woeid code for countries USA, UK, Brazil, Canada, India
 #woeidList = ['23424977','23424975','23424768', '23424775', '23424848']
@@ -51,15 +51,8 @@ if __name__ == '__main__':
             trends = data['trends']
             # grab the name from each trend
             names = [trend['name'] for trend in trends[:10]]
-            # put all the names together with a ' ' separating them
-            # trendsName = ' '.join(names)
-            #stream.filter(track=['python', 'javascript', 'ruby'])
-            #stream.filter(track=names)
-            #new_tweets = api.search(q=searchQuery, count=tweetsPerQry)
+            
             stream.filter(track=names)
 
         time.sleep(60*30)
-        
-        
-    #This line filter Twitter Streams to capture data by the keywords: 'python', 'javascript', 'ruby'
-    # stream.filter(track=['python', 'javascript', 'ruby'])
+
