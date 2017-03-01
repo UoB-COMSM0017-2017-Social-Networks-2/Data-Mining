@@ -7,13 +7,8 @@ from html.parser import HTMLParser
 import json
 import subprocess
 import time
+import config
 
-
-#Variables that contains the user credentials to access Twitter API 
-access_token = ""
-access_token_secret = ""
-consumer_key = ""
-consumer_secret = ""
 
 # sample woeid code for countries USA, UK, Brazil, Canada, India
 #woeidList = ['23424977','23424975','23424768', '23424775', '23424848']
@@ -60,8 +55,8 @@ if __name__ == '__main__':
 
     #This handles Twitter authetification and the connection to Twitter Streaming API
     l = StdOutListener()
-    auth = OAuthHandler(consumer_key, consumer_secret)
-    auth.set_access_token(access_token, access_token_secret)
+    auth = OAuthHandler(config.CONSUMER_KEY, config.CONSUMER_SECRET)
+    auth.set_access_token(config.ACCESS_TOKEN, config.ACCESS_TOKEN_SECRET)
     
     api = API(auth)
     stream = Stream(auth, l) 
