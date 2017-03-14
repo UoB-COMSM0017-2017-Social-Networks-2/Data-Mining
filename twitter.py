@@ -7,24 +7,38 @@ from html.parser import HTMLParser
 import json
 import subprocess
 import time
+import _thread
 import config
-
 
 # sample woeid code for countries USA, UK, Brazil, Canada, India
 #woeidList = ['23424977','23424975','23424768', '23424775', '23424848']
 woeidList = ['23424975'] #Used to fetch trending topics
-# sample location bounding box coordinates of london
-location = [-0.351468,51.38494,0.148271,51.672343] #Used to fetch all tweets for this location
-TrendingTopics = []
+# sample location bounding box coordinates of south west england
+location = [-5.71,49.71,-0.62,53.03] #Used to fetch all tweets for this location
+# south east england
+location1 = [-0.56,50.77,1.83,53.07]
+# central uk
+location2 = [-5.38,53.09,0.53,55.15]
+# north uk
+location3 = [-7.48,55.21,-0.35,61.05]
+# north Ireland
+location4 = [-10.5359,53.2586,-5.2823,55.2102]
+# south Ireland
+location5 = [-10.83,51.22,-5.57,53.27]
+# location1 = [-87.122124,33.38376,-86.57815,33.678715]
 
-count = 0
+TrendingTopics = []
+count = 0;
 startTime = time.time()
-timeLimit = 5 # five second limit
+timeLimit = 60 * 30 # 1/2 hour limit
 
 #This is a basic listener that just prints received tweets to stdout.
 class StdOutListener(StreamListener):
     #On every tweet arrival
     def on_data(self, data):
+        with open('tweetlocation.json','a') as tf:
+           tf.write(data)
+        # print(data)
         if ((time.time() - startTime) < timeLimit):
             #Convert the string data to pyhton json object.
             data = json.loads(HTMLParser().unescape(data))
@@ -35,11 +49,11 @@ class StdOutListener(StreamListener):
                 if topic in tweet: 
                     #Add trending topic and original bounding box as attribute
                     data['TrendingTopic'] = topic
-                    data['QueriedBoundingBox'] = location[0]
+                    # data['QueriedBoundingBox'] = location[0]
                     #Convert the json object again to string 
                     dataObj = json.dumps(data)
                     #Appending the data in tweetlondon.json file
-                    with open('tweetlondon.json','a') as tf:
+                    with open('tweetlocation.json','a') as tf:
                        tf.write(dataObj)
                     #prints on console
                     print (dataObj)        
@@ -50,28 +64,29 @@ class StdOutListener(StreamListener):
     def on_error(self, status):
         print (status)
 
+def StreamTheTweets(consumerKey, consumerSecret, accessToken, accessSecret, location):
 
-if __name__ == '__main__':
-
-    #This handles Twitter authetification and the connection to Twitter Streaming API
+    print("Data mining for location : ", location, "started")
+    # print(startTime)
+    count = 0;
+    # This handles Twitter authetification and the connection to Twitter Streaming API
     l = StdOutListener()
-    auth = OAuthHandler(config.CONSUMER_KEY, config.CONSUMER_SECRET)
-    auth.set_access_token(config.ACCESS_TOKEN, config.ACCESS_TOKEN_SECRET)
+    auth = OAuthHandler(consumerKey, consumerSecret)
+    auth.set_access_token(accessToken, accessSecret)
     
     api = API(auth)
     stream = Stream(auth, l) 
-    # send data to s3 every 5th hour
-    if (count%5 == 0):
-        # This runs the system command of transfering file to s3 bucket
-        proc = subprocess.Popen(["aws", "s3", "cp","tweetlondon.json", "s3://sentiment-bristol"], stdout=subprocess.PIPE, shell=True)
-        (out, err) = proc.communicate()
-        print ("program output:", out)
+
     while True:
         count = count + 1
         #This runs every an hour
-        print ('Tweets Collected for {0} hours'.format(count))
+        print ('Tweets Collected for {0} hours'.format(count/2))
         print(count)
-        
+
+        # To set a fresh start time
+        startTime = time.time()
+        print(startTime)
+
         # for country in location:
         for country in woeidList:
             trends1 = api.trends_place(country)
@@ -86,5 +101,52 @@ if __name__ == '__main__':
             #Stream the tweets for given location coordinates
             stream.filter(locations= [location[0],location[1],location[2],location[3]])
 
-        time.sleep(timeLimit)
-        
+    # # send data to s3 every 5th hour
+    # # only one thread is required to write data to s3 bucket
+    if (count%5 == 0 and count != 0 and location[1] == 49.71):
+        # This runs the system command of transfering file to s3 bucket
+        proc = subprocess.Popen(["aws", "s3", "cp","tweetlocation.json", "s3://sentiment-bristol"], stdout=subprocess.PIPE, shell=True)
+        (out, err) = proc.communicate()
+        print ("program output:", out)
+
+#multithreading function
+def multiThreading(threadName, count):
+
+    if(threadName == "SouthWestEngland"):
+        StreamTheTweets(config.BEN_CONSUMER_KEY, config.BEN_CONSUMER_SECRET, config.BEN_ACCESS_TOKEN, config.BEN_ACCESS_TOKEN_SECRET, location)
+                           
+    elif(threadName == "SouthEastEngland"):
+        StreamTheTweets(config.JULIAN_CONSUMER_KEY, config.JULIAN_CONSUMER_SECRET, config.JULIAN_ACCESS_TOKEN, config.JULIAN_ACCESS_TOKEN_SECRET, location1)
+
+    elif(threadName == "CentralUk"):
+        StreamTheTweets(config.HOLI_CONSUMER_KEY, config.HOLI_CONSUMER_SECRET, config.HOLI_ACCESS_TOKEN, config.HOLI_ACCESS_TOKEN_SECRET, location2)
+
+    elif(threadName == "NorthUK"):
+        StreamTheTweets(config.KANU_CONSUMER_KEY, config.KANU_CONSUMER_SECRET, config.KANU_ACCESS_TOKEN, config.KANU_ACCESS_TOKEN_SECRET, location3)
+
+    elif(threadName == "NorthIreland"):
+        StreamTheTweets(config.FLORIS_CONSUMER_KEY, config.FLORIS_CONSUMER_SECRET, config.FLORIS_ACCESS_TOKEN, config.FLORIS_ACCESS_TOKEN_SECRET, location4)
+
+    elif(threadName == "SouthIreland"):
+        StreamTheTweets(config.VISHAL_CONSUMER_KEY, config.VISHAL_CONSUMER_SECRET, config.VISHAL_ACCESS_TOKEN, config.VISHAL_ACCESS_TOKEN_SECRET, location5)
+
+
+if __name__ == '__main__':
+
+    try:
+        _thread.start_new_thread(multiThreading, ("SouthWestEngland",count,))
+        time.sleep(5)
+        _thread.start_new_thread(multiThreading, ("SouthEastEngland",count,))
+        time.sleep(5)
+        _thread.start_new_thread(multiThreading, ("CentralUk",count,))
+        time.sleep(5)
+        _thread.start_new_thread(multiThreading, ("NorthUK",count,))
+        time.sleep(5)
+        _thread.start_new_thread(multiThreading, ("NorthIreland",count,))
+        time.sleep(5)
+        _thread.start_new_thread(multiThreading, ("SouthIreland",count,))
+    except:
+        print ("Error: unable to start the thread")
+
+    while 1:
+        pass
