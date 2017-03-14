@@ -135,15 +135,15 @@ if __name__ == '__main__':
 
     try:
         _thread.start_new_thread(multiThreading, ("SouthWestEngland",count,))
-        time.sleep(5)
+        time.sleep(60)
         _thread.start_new_thread(multiThreading, ("SouthEastEngland",count,))
-        time.sleep(5)
+        time.sleep(60)
         _thread.start_new_thread(multiThreading, ("CentralUk",count,))
-        time.sleep(5)
+        time.sleep(60)
         _thread.start_new_thread(multiThreading, ("NorthUK",count,))
-        time.sleep(5)
+        time.sleep(60)
         _thread.start_new_thread(multiThreading, ("NorthIreland",count,))
-        time.sleep(5)
+        time.sleep(60)
         _thread.start_new_thread(multiThreading, ("SouthIreland",count,))
     except:
         print ("Error: unable to start the thread")
