@@ -36,7 +36,7 @@ startTime = time.time()
 class StdOutListener(StreamListener):
     #On every tweet arrival
     def on_data(self, data):
-        global startTime
+        global startTime, TrendingTopics
         if ((time.time() - startTime) < (60 * 15)):
             #Convert the string data to pyhton json object.
             data = json.loads(HTMLParser().unescape(data))
@@ -44,19 +44,18 @@ class StdOutListener(StreamListener):
             tweet = data['text']
             # print(json.dumps(tweet))
             #If tweet content contains any of the trending topic.
-            for topic in TrendingTopics:
-                if topic in json.dumps(tweet): 
-                    #Add trending topic and original bounding box as attribute
-                    data['TrendingTopic'] = topic
-                    print(json.dumps(tweet))
-                    # data['QueriedBoundingBox'] = location[0]
-                    #Convert the json object again to string 
-                    dataObj = json.dumps(data)
-                    #Appending the data in tweetlondon.json file
-                    with open('tweetlocation.json','a') as tf:
-                       tf.write(dataObj)
-                    #prints on console
-                    print (dataObj)        
+            if any(topic in json.dumps(tweet) for topic in TrendingTopics):
+                #Add trending topic and original bounding box as attribute
+                #data['TrendingTopic'] = topic
+                print(json.dumps(tweet))
+                # data['QueriedBoundingBox'] = location[0]
+                #Convert the json object again to string 
+                dataObj = json.dumps(data)
+                #Appending the data in tweetlondon.json file
+                with open('tweetlocation.json','a') as tf:
+                   tf.write(dataObj)
+                #prints on console
+                print (dataObj)        
             return True
         else:
             startTime = time.time();
@@ -66,7 +65,7 @@ class StdOutListener(StreamListener):
         print (status)
 
 def StreamTheTweets(consumerKey, consumerSecret, accessToken, accessSecret, location):
-
+    global TrendingTopics
     # print("\n ########################################## Data mining for location : ", location, "started ########################################## \n")
     # print(startTime)
     count = 0;
