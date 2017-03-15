@@ -28,27 +28,27 @@ location5 = [-10.83,51.22,-5.57,53.27]
 # location1 = [-87.122124,33.38376,-86.57815,33.678715]
 
 TrendingTopics = []
-count = 0;
+# count = 0;
 startTime = time.time()
-timeLimit = 60 * 30 # 1/2 hour limit
+# timeLimit = 60  # 1/2 hour limit
 
 #This is a basic listener that just prints received tweets to stdout.
 class StdOutListener(StreamListener):
     #On every tweet arrival
     def on_data(self, data):
-        with open('tweetlocation.json','a') as tf:
-           tf.write(data)
-        # print(data)
-        if ((time.time() - startTime) < timeLimit):
+        global startTime
+        if ((time.time() - startTime) < (60 * 15)):
             #Convert the string data to pyhton json object.
             data = json.loads(HTMLParser().unescape(data))
             #Gives the content of the tweet.
             tweet = data['text']
+            # print(json.dumps(tweet))
             #If tweet content contains any of the trending topic.
             for topic in TrendingTopics:
-                if topic in tweet: 
+                if topic in json.dumps(tweet): 
                     #Add trending topic and original bounding box as attribute
                     data['TrendingTopic'] = topic
+                    print(json.dumps(tweet))
                     # data['QueriedBoundingBox'] = location[0]
                     #Convert the json object again to string 
                     dataObj = json.dumps(data)
@@ -59,15 +59,15 @@ class StdOutListener(StreamListener):
                     print (dataObj)        
             return True
         else:
+            startTime = time.time();
             return False
 
     def on_error(self, status):
         print (status)
 
-#checks the trending topic and call the stream function
 def StreamTheTweets(consumerKey, consumerSecret, accessToken, accessSecret, location):
 
-    print("Data mining for location : ", location, "started")
+    # print("\n ########################################## Data mining for location : ", location, "started ########################################## \n")
     # print(startTime)
     count = 0;
     # This handles Twitter authetification and the connection to Twitter Streaming API
@@ -81,12 +81,8 @@ def StreamTheTweets(consumerKey, consumerSecret, accessToken, accessSecret, loca
     while True:
         count = count + 1
         #This runs every an hour
-        print ('Tweets Collected for {0} hours'.format(count/2))
+        print ('\n ****************************************** Tweet Collection for next {0} hours started ************************************************************** \n'.format(count/2))
         print(count)
-
-        # To set a fresh start time
-        startTime = time.time()
-        print(startTime)
 
         # for country in location:
         for country in woeidList:
@@ -98,11 +94,12 @@ def StreamTheTweets(consumerKey, consumerSecret, accessToken, accessSecret, loca
             TrendingTopics = [trend['name'] for trend in trends[:10]]
             # put all the names together with a ' ' separating them
             #trendsName = ' '.join(names)
-            print(TrendingTopics)
+            # print("\n &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& Trending topic for this time are &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&")
+            # print(TrendingTopics,"\n")
             #Stream the tweets for given location coordinates
             stream.filter(locations= [location[0],location[1],location[2],location[3]])
 
-    # # send data to s3 every 5th hour 
+    # # send data to s3 every 5th hour
     # # only one thread is required to write data to s3 bucket
     if (count%5 == 0 and count != 0 and location[1] == 49.71):
         # This runs the system command of transfering file to s3 bucket
@@ -111,7 +108,7 @@ def StreamTheTweets(consumerKey, consumerSecret, accessToken, accessSecret, loca
         print ("program output:", out)
 
 #multithreading function
-def multiThreading(threadName, count):
+def multiThreading(threadName):
 
     if(threadName == "SouthWestEngland"):
         StreamTheTweets(config.BEN_CONSUMER_KEY, config.BEN_CONSUMER_SECRET, config.BEN_ACCESS_TOKEN, config.BEN_ACCESS_TOKEN_SECRET, location)
@@ -135,17 +132,17 @@ def multiThreading(threadName, count):
 if __name__ == '__main__':
 
     try:
-        _thread.start_new_thread(multiThreading, ("SouthWestEngland",count,))
-        time.sleep(60)
-        _thread.start_new_thread(multiThreading, ("SouthEastEngland",count,))
-        time.sleep(60)
-        _thread.start_new_thread(multiThreading, ("CentralUk",count,))
-        time.sleep(60)
-        _thread.start_new_thread(multiThreading, ("NorthUK",count,))
-        time.sleep(60)
-        _thread.start_new_thread(multiThreading, ("NorthIreland",count,))
-        time.sleep(60)
-        _thread.start_new_thread(multiThreading, ("SouthIreland",count,))
+        _thread.start_new_thread(multiThreading, ("SouthWestEngland",))
+        time.sleep(10)
+        _thread.start_new_thread(multiThreading, ("SouthEastEngland",))
+        time.sleep(10)
+        _thread.start_new_thread(multiThreading, ("CentralUk",))
+        time.sleep(10)
+        _thread.start_new_thread(multiThreading, ("NorthUK",))
+        time.sleep(10)
+        _thread.start_new_thread(multiThreading, ("NorthIreland",))
+        time.sleep(10)
+        _thread.start_new_thread(multiThreading, ("SouthIreland",))
     except:
         print ("Error: unable to start the thread")
 
