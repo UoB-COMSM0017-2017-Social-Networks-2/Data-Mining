@@ -64,6 +64,7 @@ class StdOutListener(StreamListener):
     def on_error(self, status):
         print (status)
 
+#checks the trending topic and call the stream function
 def StreamTheTweets(consumerKey, consumerSecret, accessToken, accessSecret, location):
 
     print("Data mining for location : ", location, "started")
@@ -101,7 +102,7 @@ def StreamTheTweets(consumerKey, consumerSecret, accessToken, accessSecret, loca
             #Stream the tweets for given location coordinates
             stream.filter(locations= [location[0],location[1],location[2],location[3]])
 
-    # # send data to s3 every 5th hour
+    # # send data to s3 every 5th hour 
     # # only one thread is required to write data to s3 bucket
     if (count%5 == 0 and count != 0 and location[1] == 49.71):
         # This runs the system command of transfering file to s3 bucket
